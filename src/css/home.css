@@ -1,0 +1,23 @@
+html, body, #root, .home-page {
+    padding: 0;
+    margin: 0;
+    height: 100%
+}
+
+.home-page {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+#create-meeting {
+    margin: 30px;
+    margin-top: 120px;
+    width: 400px;
+    padding: 10px;
+}
+
+#banner {
+    flex-grow: 1;
+    background: linear-gradient(to top, #5f2c82, #49a09d);
+}
