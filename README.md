@@ -88,7 +88,7 @@ Contributions are welcome and appreciated, but please adhere to the following gu
 - Any modifications to the README must adhere to [standard-readme](https://github.com/RichardLitt/standard-readme).
 - If your PR modifies the front-end, make sure to write and/or modify any appropriate [cypress](https://docs.cypress.io/) tests. 
 
-These guidelines are strongly reccomendations but are by no means required - feel free to be flexible with your contributions.
+These guidelines are strongly recommended but are by no means required - feel free to be flexible with your contributions.
 
 ## License
 [Unlicense](LICENSE.md) - free and open-source!
