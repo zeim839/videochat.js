@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 html, body, #root, .video-page {
     padding: 0;
     margin: 0;
@@ -51,7 +55,6 @@ h4 {
 .nav-menu {
     position: fixed;
     top: auto;
-    width: 100%;
     bottom: 0;
     background-color: black;
 }
@@ -72,9 +75,7 @@ h4 {
 }
 
 .message-view {
-    width: 20vw;
     min-width: 150px;
-    max-width: 350px;
     background-color: #ecf0f1;
     height: 100%;
     display: grid;
@@ -105,8 +106,34 @@ h4 {
 }
 
 .video-grid {
-    display: grid;
     height: 100%;
-    grid-template-columns: 5fr 1fr;
-    grid-template-rows: 1fr;
+    width: 100%;
+}
+
+.self-stream {
+    width: 250px;
+    height: 150px;
+    position: fixed;
+    left: 0px;
+    bottom: 80px;
+}
+
+.max-drawer-return {
+    position: fixed !important;
+    top: 5px;
+    left: 5px;
+}
+
+@media screen and (max-height: 600px) {
+    .self-stream {
+        width: 200px;
+        height: 120px;
+    }
+}
+
+@media screen and (max-height: 500px) {
+    .self-stream {
+        width: 120px;
+        height: 80px;
+    }
 }

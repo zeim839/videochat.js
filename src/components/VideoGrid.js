@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Stream from './Stream'
 
-function VideoGrid ({ selfStream, socket, peer, micPerm, camPerm, showAlert, drawerWidth }) {
+function VideoGrid ({ selfStream, socket, peer, micPerm, camPerm, showAlert }) {
   const [streams, updateStreams] = useState([])
   const streamRef = useRef(streams)
   const height = window.innerHeight
@@ -21,7 +21,6 @@ function VideoGrid ({ selfStream, socket, peer, micPerm, camPerm, showAlert, dra
   // then removes any of his streams from state.
   const handleDisconnect = (msg, streams) => {
     const index = streams.findIndex(stream => stream.peerID === msg.PeerID)
-
     // If found
     if (index > -1) {
       // Deep copy the streams array
@@ -65,11 +64,7 @@ function VideoGrid ({ selfStream, socket, peer, micPerm, camPerm, showAlert, dra
   }, [])
 
   return (
-    <div
-      className='video-grid' style={{
-        width: `calc(100% - ${drawerWidth})`
-      }}
-    >
+    <div className='video-grid'>
       {
         streams.map(streamObj => {
           const remoteStream = streamObj.stream

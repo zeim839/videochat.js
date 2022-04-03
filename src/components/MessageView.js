@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import Message from './Message'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
-
-import SendIcon from '@mui/icons-material/Send'
 import IconButton from '@mui/material/IconButton'
 
-function MessageView ({ socket, windowHeight, meeting, ...props }) {
+import SendIcon from '@mui/icons-material/Send'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+function MessageView ({ socket, windowHeight, meeting, closeDrawer, ...props }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState(null)
 
@@ -119,8 +120,25 @@ function MessageView ({ socket, windowHeight, meeting, ...props }) {
     })
   }
 
+  const drawerWidth = () => {
+    if (window.innerWidth > 569) return {width: "260px"};
+    else return {width: window.innerWidth.toString() + "px"};
+  }
+
+  const showReturnButton = () => {
+    if (window.innerWidth > 569) return null
+    return (
+      <IconButton className="max-drawer-return" onClick={() => {
+        closeDrawer()
+      }}>
+        <ArrowBackIcon />
+      </IconButton>
+    )
+  }
+
   return (
-    <div className='message-view'>
+    <div className='message-view' style={drawerWidth()}>
+      {showReturnButton()}
       <div
         id='messages' style={{
           width: '100%',
