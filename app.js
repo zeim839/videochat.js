@@ -15,7 +15,7 @@ const { v4: uuidv4 } = require('uuid')
 const HTTP_PORT = 3001
 const PEER_PORT = 3002
 const SECURE = true
-const DB_NAME = 'V2Testing'
+const DB_NAME = 'CHATDB'
 const SESSION_EXPIRE_AFTER = 86400 // Lifespan of a meeting in ms (24 HOURS)
 const JWT_HEADER = base64.encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
 
