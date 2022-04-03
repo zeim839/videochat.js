@@ -49,7 +49,7 @@ const createJWT = (meeting, username, admin) => {
 const rooms = {}
 
 app.get('/meeting/:meet', (req, res) => {
-  res.sendFile('/Users/mz/Desktop/videochat/build/index.html')
+  res.sendFile(__dirname + '/build/index.html')
 })
 
 app.post('/api/create-meeting', async (req, res) => {
@@ -78,6 +78,7 @@ app.post('/api/create-meeting', async (req, res) => {
   await db.db(DB_NAME).collection('Meetings').insertOne(meeting)
     .catch((e) => {
       res.status(500).send({ Error: 'Database internal error.' })
+      throw e
     })
 
   // Register username
@@ -89,6 +90,7 @@ app.post('/api/create-meeting', async (req, res) => {
     expireAfterSeconds: SESSION_EXPIRE_AFTER
   }).catch((e) => {
     res.status(500).send({ Error: 'Database internal error.' })
+    throw e
   })
 
   res.status(200).send({
@@ -148,6 +150,7 @@ app.post('/api/sign-in', async (req, res) => {
     expireAfterSeconds: SESSION_EXPIRE_AFTER
   }).catch((e) => {
     res.status(500).send({ Error: 'Database internal error.' })
+    throw e
   })
 
   // Generate JWT

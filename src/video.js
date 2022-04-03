@@ -95,7 +95,7 @@ class Video extends React.Component {
     })
   }
 
-  waitOnPeerID() {
+  waitOnPeerID () {
     return new Promise((resolve, reject) => {
       if (this.state.peerID !== null) resolve(this.state.peerID)
       this.peer.on('open', resolve)
@@ -166,7 +166,7 @@ class Video extends React.Component {
         JWT: this.state.jwt,
         PeerID: id
       })
-  
+
       localStorage.setItem('Session', JSON.stringify({
         Username: this.state.username,
         Meeting: this.state.meeting,

@@ -7,7 +7,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 import IconButton from '@mui/material/IconButton'
 
 import SendIcon from '@mui/icons-material/Send'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
 function MessageView ({ socket, windowHeight, meeting, closeDrawer, ...props }) {
   const [messages, setMessages] = useState([])
@@ -121,16 +121,18 @@ function MessageView ({ socket, windowHeight, meeting, closeDrawer, ...props }) 
   }
 
   const drawerWidth = () => {
-    if (window.innerWidth > 569) return {width: "260px"};
-    else return {width: window.innerWidth.toString() + "px"};
+    if (window.innerWidth > 569) return { width: '260px' }
+    else return { width: window.innerWidth.toString() + 'px' }
   }
 
   const showReturnButton = () => {
     if (window.innerWidth > 569) return null
     return (
-      <IconButton className="max-drawer-return" onClick={() => {
-        closeDrawer()
-      }}>
+      <IconButton
+        className='max-drawer-return' onClick={() => {
+          closeDrawer()
+        }}
+      >
         <ArrowBackIcon />
       </IconButton>
     )
