@@ -6,18 +6,13 @@ function Stream ({ srcObj, cam, mic, ...props }) {
   const setSize = () => {
     // Self camera
     if (cam !== undefined || mic !== undefined) {
-      streamRef.current.style.width = '250px'
-      streamRef.current.style.height = '150px'
+      streamRef.current.className = 'self-stream'
       return
     }
 
-    let width, height
     const parent = streamRef.current.parentNode
-
-    if (parent.style.height >= parent.style.width) { height = '85%'; width = 'auto' } else { width = '85%'; height = 'auto' }
-
-    streamRef.current.style.width = width
-    streamRef.current.style.height = height
+    streamRef.current.style.width = parent.style.width
+    streamRef.current.style.height = parent.style.height
   }
 
   // We wrap the streamRef's operations into a useEffect

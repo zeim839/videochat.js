@@ -40,7 +40,7 @@ class Video extends React.Component {
     super(props)
 
     this.showAlert = props.showAlert
-    this.drawerWidth = '0vw'
+    this.drawerWidth = '0px'
 
     this.state = {
       username: null,
@@ -92,6 +92,13 @@ class Video extends React.Component {
     // the server.
     this.socket.on('ENTER-SUCCESS', msg => {
       this.setState({ ...this.state, signedIn: true })
+    })
+  }
+
+  waitOnPeerID() {
+    return new Promise((resolve, reject) => {
+      if (this.state.peerID !== null) resolve(this.state.peerID)
+      this.peer.on('open', resolve)
     })
   }
 
@@ -153,19 +160,21 @@ class Video extends React.Component {
   // our session credentials and gain access to the meeting.
   // The server's response (which is what actually grants access),
   // is captured in the class constructor.
-  enterMeeting () {
-    this.socket.emit('ENTER-MEETING', {
-      JWT: this.state.jwt,
-      PeerID: this.state.peerID
+  async enterMeeting () {
+    this.waitOnPeerID().then((id) => {
+      this.socket.emit('ENTER-MEETING', {
+        JWT: this.state.jwt,
+        PeerID: id
+      })
+  
+      localStorage.setItem('Session', JSON.stringify({
+        Username: this.state.username,
+        Meeting: this.state.meeting,
+        Password: this.state.password,
+        Admin: this.state.admin,
+        JWT: this.state.jwt
+      }))
     })
-
-    localStorage.setItem('Session', JSON.stringify({
-      Username: this.state.username,
-      Meeting: this.state.meeting,
-      Password: this.state.password,
-      Admin: this.state.admin,
-      JWT: this.state.jwt
-    }))
   }
 
   // Returns a promise and tries to restore a session from
@@ -235,7 +244,7 @@ class Video extends React.Component {
   }
 
   toggleDrawer () {
-    this.drawerWidth = (this.drawerWidth === '0vw') ? '20vw - 50px' : '0vw'
+    this.drawerWidth = (this.drawerWidth === '0px') ? '260px' : '0px'
     this.setState({ ...this.state, chatDrawer: !this.state.chatDrawer })
   }
 
@@ -261,6 +270,7 @@ class Video extends React.Component {
               meeting={this.state.meeting}
               socket={this.socket}
               windowHeight={this.state.windowHeight}
+              closeDrawer={this.toggleDrawer.bind(this)}
             />
           </Drawer>
           <VideoGrid
@@ -271,7 +281,6 @@ class Video extends React.Component {
             micPerm={this.state.micPerm}
             camPerm={this.state.camPerm}
             showAlert={this.showAlert}
-            drawerWidth={this.drawerWidth}
           />
           <AppBar
             color='inherit' class='nav-menu' style={{

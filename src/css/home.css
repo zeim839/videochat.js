@@ -12,7 +12,7 @@ html, body, #root, .home-page {
 
 #create-meeting {
     margin: 30px;
-    margin-top: 120px;
+    margin-top: 15vh;
     width: 400px;
     padding: 10px;
 }
