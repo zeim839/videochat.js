@@ -73,14 +73,12 @@ const DB_NAME = 'videochat' // DB name
 ```
 
 ## Security
-This is a demo/hobby project and not meant for high-traffic/commercial applications. 
-
-That said, the PeerJS library and peer brokering servers are highly vulnerable. For example, PeerID's can easily be spoofed and client streams can be rerouted to an external application. 
+The PeerJS library and peer brokering servers are highly vulnerable and not meant for high-traffic/commercial applications. That said, PeerID's can easily be spoofed and client streams can be rerouted to an external application. 
 
 Chat messages are also sent unencrypted, which isn't a concern if you're using HTTPS, but they can still be opened and read server-side. 
 
 ## Contributing
-Contributions are welcome and appreciated, but please adhere to the following guidelines:
+Please adhere to the following guidelines:
 - Write meaningful and detailed commit messages and/or PR descriptions. 
 - Please specify steps to reproduce any bugs/issues in your issue descriptions (if applicable). 
 - If you want to introduce a new feature, please open an issue first - this way you'll be saving yourself time in the (unlikely) case that your feature is rejected. 
@@ -91,4 +89,4 @@ Contributions are welcome and appreciated, but please adhere to the following gu
 These guidelines are strongly recommended but are by no means required - feel free to be flexible with your contributions.
 
 ## License
-[Unlicense](LICENSE.md) - free and open-source!
+[Unlicense](LICENSE.md)
