@@ -34,9 +34,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "npm run lint & concurrently \"npm run serve\" \"npm run react\"",
+    "start": "concurrently \"npm run serve\" \"npm run react\"",
     "react": "react-scripts start",
-    "build": "npm run lint & react-scripts build",
+    "build": "react-scripts build",
     "test": "concurrently \"npm start\" \"npx cypress open\"",
     "serve": "nodemon app.js",
     "eject": "react-scripts eject",
