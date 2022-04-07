@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
+const path = require('path')
 
 const dotenv = require('dotenv')
 const { MongoClient } = require('mongodb')
@@ -49,7 +50,7 @@ const createJWT = (meeting, username, admin) => {
 const rooms = {}
 
 app.get('/meeting/:meet', (req, res) => {
-  res.sendFile(__dirname + '/build/index.html')
+  res.sendFile(path.join(__dirname, '/build/index.html'))
 })
 
 app.post('/api/create-meeting', async (req, res) => {

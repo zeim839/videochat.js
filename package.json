@@ -42,6 +42,12 @@
     "eject": "react-scripts eject",
     "lint": "standard --fix"
   },
+  "standard": {
+    "ignore": [
+      "cypress/*",
+      "package.json"
+    ]
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
