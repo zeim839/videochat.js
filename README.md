@@ -57,11 +57,11 @@ http://localhost:3000
 npm run build 
 npm run serve
 ```
-Builds the react front-end and serves the files from the server. Enables more efficient hosting on production environments. Access the site at:
+Builds the react front-end and serves the files from the server. This is the approach that you'll most likely use on a production environment (except without serving over npm). Access the site at:
 ```
 http://localhost:3001
 ```
-<b> Optional    Configuration: </b> <br>
+<b> Optional    Configurations: </b> <br>
 You can modify the HTTP ports, HTTPS settings, database names, etc. through the [app.js](app.js) file. 
 
 ```js
@@ -70,6 +70,16 @@ const PEER_PORT = 3002      // Peerjs server port
 const SECURE = true         // Use HTTPS for Peerjs
 const DB_NAME = 'videochat' // DB name
 // etc...
+```
+
+Modify the client-side Peer.js client through the [peerOptions.js](src/peerOptions.js) file.
+```js
+const PEER_OPTIONS = {
+  host: '/',
+  secure: false, 
+  port: 3002
+  // etc...
+}
 ```
 
 ## Security
