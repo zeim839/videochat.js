@@ -1,50 +1,55 @@
-import React, { useState } from 'react'
+import React from 'react'
 import Snackbar from '@mui/material/Snackbar'
 
 import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 
-function AlertWrapper (props) {
-  const [alert, setAlert] = useState({
-    alert: false,
-    message: ''
-  })
-
-  const showAlert = msg => {
-    setAlert({ alert: true, message: msg })
+class AlertWrapper extends React.Component {
+  constructor (props) {
+    super(props)
+    this.props = props
+    this.state = {
+      alert: false,
+      message: ''
+    }
   }
 
-  const alertClose = () => {
-    setAlert({ alert: false, message: '' })
+  showAlert (msg) {
+    this.setState({ alert: true, message: msg })
   }
 
-  const alertAction = () => {
+  closeAlert () {
+    this.setState({ alert: false, message: '' })
+  }
+
+  alertAction () {
     return (
       <IconButton
         size='small'
         aria-label='close'
         color='inherit'
-        onClick={alertClose.bind(this)}
+        onClick={this.closeAlert.bind(this)}
       > <CloseIcon fontSize='small' />
       </IconButton>
     )
   }
 
-  return (
-    <>
-      {React.cloneElement(props.children, {
-        ...props,
-        showAlert: showAlert
-      })}
-      <Snackbar
-        open={alert.alert}
-        autoHideDuration={6000}
-        onClose={alertClose}
-        message={alert.message}
-        action={alertAction()}
-      />
-    </>
-  )
+  render () {
+    return (
+      <>
+        {React.cloneElement(this.props.children, {
+          ...this.props,
+          showAlert: this.showAlert.bind(this)
+        })}
+        <Snackbar
+          open={this.state.alert}
+          autoHideDuration={6000}
+          onClose={this.closeAlert.bind(this)}
+          message={this.state.message}
+          action={this.alertAction()}
+        />
+      </>
+    )
+  }
 }
-
 export default AlertWrapper

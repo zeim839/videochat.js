@@ -1,92 +1,147 @@
-import { useState, useEffect, useRef } from 'react'
+import React from 'react'
 import Stream from './Stream'
+import AlertWrapper from './AlertWrapper'
 
-function VideoGrid ({ selfStream, socket, peer, micPerm, camPerm, showAlert }) {
-  const [streams, updateStreams] = useState([])
-  const streamRef = useRef(streams)
-  const height = window.innerHeight
-  const width = window.innerWidth
+class VideoGrid extends React.Component {
+  constructor (props) {
+    super(props)
+    this.feed = props.feed
+    this.socket = props.socket
+    this.peer = props.peer
+    this.showAlert = props.showAlert
+    this.JWT = props.JWT
 
-  // Listens for call events and appends their stream to the state.
-  const handleStream = (call) => {
-    call.on('stream', remoteStream => {
-      updateStreams([{
-        peerID: call.peer,
-        stream: remoteStream
-      }, ...streams])
+    this.peers = {}
+
+    this.state = {
+      winHeight: window.innerHeight,
+      winWidth: window.innerWidth,
+      streams: [],
+      pAudio: props.pAudio,
+      pVideo: props.pVideo
+    }
+
+    this.waitToEnter().then(() => {
+      // The VideoGrid component only loads once the user has signed in,
+      // set up his self stream and initialised his peerID. So at this point,
+      // we can safely ask for other users to start calling us.
+      this.socket.emit('CALL-REQUEST', this.peer.id)
+
+      // Disconnection event.
+      this.socket.on('PEER-DISCONNECTED', (msg) => {
+        this.handleDisconnect(msg)
+      })
+
+      // Video calls are currently limited to only one other
+      // peer
+      this.socket.on('CALL-REQUEST', peerID => {
+        if (peerID === this.peer.id) return
+        if (this.state.streams.length > 1) return
+        const call = this.peer.call(peerID, this.feed)
+        this.handleStream(call)
+      })
+
+      this.peer.on('call', call => {
+        if (this.state.streams.length > 1) { return }
+        call.answer(this.feed)
+        this.handleStream(call)
+      })
     })
   }
 
-  // Searches for the disconnected peer by his peerID in state, and
-  // then removes any of his streams from state.
-  const handleDisconnect = (msg, streams) => {
-    const index = streams.findIndex(stream => stream.peerID === msg.PeerID)
+  waitToEnter () {
+    return new Promise((resolve, reject) => {
+      this.socket.on('ENTER-SUCCESS', resolve)
+      this.socket.emit('ENTER-MEETING', {
+        JWT: this.JWT,
+        PeerID: this.peer.id
+      })
+    })
+  }
+
+  handleStream (call) {
+    call.on('stream', remoteStream => {
+      if (!this.peers[call.peer]) {
+        this.setState({
+          ...this.state,
+          streams: [
+            { peerID: call.peer, stream: remoteStream },
+            ...this.state.streams
+          ]
+        })
+        this.peers[call.peer] = true
+      }
+    })
+  }
+
+  handleDisconnect (msg) {
+    const index = this.state.streams.findIndex(stream => stream.peerID === msg.PeerID)
     // If found
     if (index > -1) {
       // Deep copy the streams array
-      const newStreams = [...streams]
+      const newStreams = [...this.state.streams]
 
       // Remove the bad stream and update state
       newStreams.splice(index, 1)
-      updateStreams(newStreams)
+      this.setState({ ...this.state, streams: newStreams })
 
       // Alert user
-      showAlert('Peer disconnected')
+      this.showAlert('Peer disconnected')
     }
   }
 
-  useEffect(() => { streamRef.current = streams })
+  resize () {
+    if (window.innerHeight !== this.state.winHeight) {
+      this.setState({ ...this.state, winHeight: window.innerHeight })
+    }
 
-  useEffect(() => {
-    // The VideoGrid component only loads once the user has signed in,
-    // set up his self stream and initialised his peerID. So at this point,
-    // we can safely ask for other users to start calling us.
-    socket.emit('CALL-REQUEST', peer.id)
+    if (window.innerWidth !== this.state.winWidth) {
+      this.setState({ ...this.state, winWidth: window.innerWidth })
+    }
+  }
 
-    // Disconnection event.
-    socket.on('PEER-DISCONNECTED', (msg) => {
-      handleDisconnect(msg, streamRef.current)
-    })
+  componentDidMount () {
+    window.addEventListener('resize', this.resize.bind(this))
+  }
 
-    // Video calls are currently limited to only one other
-    // peer
-    socket.on('CALL-REQUEST', peerID => {
-      if (streams.length > 1) { return }
-      const call = peer.call(peerID, selfStream)
-      handleStream(call)
-    })
+  componentDidUpdate (oldProps) {
+    if (oldProps.pVideo !== this.props.pVideo ||
+        oldProps.pAudio !== this.props.pAudio) {
+      this.setState({
+        ...this.state,
+        pVideo: this.props.pVideo,
+        pAudio: this.props.pAudio
+      })
+    }
+  }
 
-    peer.on('call', call => {
-      if (streams.length > 1) { return }
-      call.answer(selfStream)
-      handleStream(call)
-    })
-  }, [])
-
-  return (
-    <div className='video-grid'>
-      {
-        streams.map(streamObj => {
-          const remoteStream = streamObj.stream
-          return (
-            <Stream
-              key={streamObj.peerID}
-              width={width}
-              height={height}
-              srcObj={remoteStream}
-            />
-          )
-        })
-      }
-      <Stream
-        width={250}
-        height={150}
-        srcObj={selfStream}
-        cam={camPerm}
-        mic={micPerm}
-      />
-    </div>
-  )
+  render () {
+    return (
+      <div className='video-grid'>
+        {
+          this.state.streams.map(streamObj => {
+            return (
+              <Stream
+                key={streamObj.peerID}
+                srcObj={streamObj.stream}
+                pVideo={null}
+                pAudio={null}
+              />
+            )
+          })
+        }
+        <Stream
+          srcObj={this.feed}
+          pVideo={this.state.pVideo}
+          pAudio={this.state.pAudio}
+        />
+      </div>
+    )
+  }
 }
 
-export default VideoGrid
+export default (props) => (
+  <AlertWrapper>
+    <VideoGrid {...props} />
+  </AlertWrapper>
+)

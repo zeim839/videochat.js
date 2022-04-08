@@ -1,63 +1,66 @@
-import { createRef, useEffect } from 'react'
+import React, { createRef } from 'react'
 
-function Stream ({ srcObj, cam, mic, ...props }) {
-  const streamRef = createRef(null)
+class Stream extends React.Component {
+  constructor (props) {
+    super(props)
 
-  const setSize = () => {
-    // Self camera
-    if (cam !== undefined || mic !== undefined) {
-      streamRef.current.className = 'self-stream'
-      return
-    }
-
-    const parent = streamRef.current.parentNode
-    streamRef.current.style.width = parent.style.width
-    streamRef.current.style.height = parent.style.height
+    this.stream = createRef(null)
+    this.srcObj = props.srcObj
+    this.pVideo = props.pVideo
+    this.pAudio = props.pAudio
   }
 
-  // We wrap the streamRef's operations into a useEffect
-  // hook because we want to wait for the video element to
-  // mount first (cant access streamRef.curent... otherwise)
-  useEffect(() => {
-    setSize()
-    streamRef.current.srcObject = srcObj
-    const track = streamRef.current.srcObject.getVideoTracks()[0]
+  updateStreamPermissions () {
+    // Ensure this is the client's stream we're modifying
+    if (this.pVideo == null || this.pAudio == null) return
 
-    if (cam !== undefined) {
-      // Enable/disable the video feed. Useful for when the client
-      // toggles his permission settings.
-      track.enabled = cam
-      streamRef.current.muted = true
+    // Turn the audio/video tracks on or off according to
+    // the client's permissions
+    this.stream.current.srcObject.getVideoTracks()[0].enabled = this.pVideo
+    this.stream.current.srcObject.getAudioTracks()[0].enabled = this.pAudio
+    this.stream.current.muted = true
+  }
+
+  componentDidMount () {
+    // window.addEventListener("resize", this.setSize.bind(this))
+    if (this.pVideo !== null || this.pAudio !== null) {
+      this.stream.current.className = 'self-stream'
+    } else {
+      this.stream.current.style.width = '100%'
+      this.stream.current.style.height = '100%'
     }
 
-    if (mic !== undefined) {
-      // Enable/disable the microphone feed. Useful for when the
-      // client toggles his permission settings.
-      streamRef.current.srcObject.getAudioTracks()[0].enabled = mic
-      streamRef.current.muted = true
-    }
+    // Set the source object
+    this.stream.current.srcObject = this.srcObj
 
     // Start playing the stream
-    streamRef.current.play()
-  }, [])
+    this.stream.current.play()
 
-  // Update camera/microphone permissions
-  useEffect(() => {
-    if (cam !== undefined) {
-      streamRef.current.srcObject.getVideoTracks()[0].enabled = cam
+    // If this is the client's own stream, then
+    // then mute so the user's audio doesnt play
+    // back.
+    if (this.pVideo !== null || this.pAudio !== null) {
+      this.stream.current.muted = true
     }
 
-    if (mic !== undefined) {
-      streamRef.current.srcObject.getAudioTracks()[0].enabled = mic
+    // Update permissions
+    this.updateStreamPermissions()
+  }
+
+  componentDidUpdate (prevProps) {
+    if (prevProps.pVideo !== this.props.pVideo ||
+        prevProps.pAudio !== this.props.pAudio) {
+      this.pAudio = this.props.pAudio
+      this.pVideo = this.props.pVideo
+      this.updateStreamPermissions()
     }
-  })
+  }
 
-  // Adjust stream element size whenever our screen size changes
-  useEffect(() => { setSize() }, [window.innerHeight, window.innerWidth])
-
-  return (
-    <video {...props} ref={streamRef} />
-  )
+  render () {
+    return (
+      <video ref={this.stream} />
+    )
+  }
 }
 
 export default Stream
