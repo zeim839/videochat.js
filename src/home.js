@@ -3,6 +3,7 @@ import './css/home.css'
 import React from 'react'
 import AlertWrapper from './components/AlertWrapper'
 import axios from 'axios'
+import base64 from 'base-64'
 
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
@@ -17,29 +18,37 @@ class Home extends React.Component {
     super(props)
     this.showAlert = props.showAlert
     this.state = {
-      username: null,
-      password: null
+      Username: null,
+      Password: null
     }
+  }
+
+  apiFail (e) {
+    this.showAlert('Server Failed to respond. Please try again.')
   }
 
   // Validates the username and password fields
   // of the home page form. Returns true for valid
   // submissions, returns false and shows an error
   // prompt on failure.
+  // Validates the username and password fields
+  // of the home page form. Returns true for valid
+  // submissions, returns false and shows an error
+  // prompt on failure.
   validate () {
     // Ensure fields are non-empty
-    if (this.state.username.match(/^\s*$/) === '') {
+    if (this.state.Username.match(/^\s*$/) === '') {
       this.showAlert('Username cannot be empty')
       return false
     }
 
-    if (this.state.password.match(/^\s*$/) === '') {
+    if (this.state.Password.match(/^\s*$/) === '') {
       this.showAlert('Password cannot be empty')
       return false
     }
 
     // Enfore minimum 4 character password length
-    if (this.state.password.length < 4) {
+    if (this.state.Password.length < 4) {
       this.showAlert('Password must be at least 4 characters')
       return false
     }
@@ -52,48 +61,51 @@ class Home extends React.Component {
   // Creates a session object to load onto localStorage
   // and navigates to the meeting page. Runs after succesful
   // meeting creation.
-  launchSession (res) {
+  createSession (res) {
+    // Ensure response returns required session fields
+    // "Admin" is not required
+    if (!res.data.Username || !res.data.Meeting || !res.data.JWT) {
+      this.apiFail()
+    }
+
     // Create a session object
     const session = {
       Username: res.data.Username,
       Meeting: res.data.Meeting,
-      Password: this.state.password,
+      Password: this.state.Password,
       Admin: res.data.Admin,
       JWT: res.data.JWT
     }
 
+    const message = base64.encode(JSON.stringify(session))
+
     // Store session information to local storage
     // so we can automatically enter meeting when
     // redirected.
-    localStorage.setItem('Session', JSON.stringify(session))
+    localStorage.setItem('Session', message)
 
     // Redirect user to meeting page
     window.location.replace('/meeting/' + session.Meeting)
   }
 
-  // Submit event handler for the create meeting form.
-  // Sends form data to the server and handles success/errors.
-  async onSubmit (e) {
-    // Do not refresh page, etc.
+  submitForm (e) {
+    // Stops the form from refreshing the site
     e.preventDefault()
 
-    // Validate inputs
+    // Run input validation
+    // Format errors/alerts are handled by validate
     if (!this.validate()) return
 
-    // Submit form
-    await axios.post('/api/create-meeting', {
-      Username: this.state.username,
-      Password: this.state.password
-    }).then(this.launchSession.bind(this))
-      .catch(e => {
-        this.showAlert('Server failed to respond. Please try again.')
-      })
+    // Submit the form
+    axios.post('/api/create-meeting', this.state)
+      .then(this.createSession.bind(this), this.apiFail.bind(this))
+      .catch(this.apiFail.bind(this))
   }
 
   render () {
     return (
       <div className='home-page'>
-        <form id='create-meeting' onSubmit={this.onSubmit.bind(this)}>
+        <form id='create-meeting' onSubmit={this.submitForm.bind(this)}>
           <Typography
             variant='h2'
             component='h1'
@@ -101,7 +113,6 @@ class Home extends React.Component {
           > Create Meeting
           </Typography>
           <TextField
-            className='-input-username'
             margin='normal'
             required fullWidth
             autoComplete='off'
@@ -109,7 +120,7 @@ class Home extends React.Component {
             variant='outlined'
             onChange={(e) => this.setState({
               ...this.state,
-              username: e.target.value
+              Username: e.target.value
             })}
             autoFocus
             InputProps={{
@@ -121,7 +132,6 @@ class Home extends React.Component {
             }}
           />
           <TextField
-            className='-input-password'
             margin='normal'
             required fullWidth
             autoComplete='off'
@@ -129,7 +139,7 @@ class Home extends React.Component {
             variant='outlined'
             onChange={(e) => this.setState({
               ...this.state,
-              password: e.target.value
+              Password: e.target.value
             })}
             type='password'
             autoFocus

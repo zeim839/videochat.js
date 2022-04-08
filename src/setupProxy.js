@@ -1,5 +1,7 @@
 const { createProxyMiddleware } = require('http-proxy-middleware')
 
+// Using a proxy allows reactJS to query the server API
+// without having to build the app. 
 module.exports = (app) => {
   app.use(
     '/api',
