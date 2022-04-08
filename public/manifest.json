@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Videochat.js",
+  "name": "Videochat.js P2P chat room",
   "icons": [
     {
       "src": "favicon.ico",
