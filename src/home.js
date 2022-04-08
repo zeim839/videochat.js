@@ -35,13 +35,12 @@ class Home extends React.Component {
   // submissions, returns false and shows an error
   // prompt on failure.
   validate () {
-    // Ensure fields are non-empty
-    if (this.state.Username.match(/^\s*$/) === '') {
+    if (this.state.Username.match(/^ *$/) !== null) {
       this.showAlert('Username cannot be empty')
       return false
     }
 
-    if (this.state.Password.match(/^\s*$/) === '') {
+    if (this.state.Password.match(/^ *$/) !== null) {
       this.showAlert('Password cannot be empty')
       return false
     }
