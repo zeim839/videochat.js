@@ -1,5 +1,5 @@
 /* global localStorage */
-import { useState, useEffect } from 'react'
+import React from 'react'
 
 import Message from './Message'
 import TextField from '@mui/material/TextField'
@@ -9,89 +9,113 @@ import IconButton from '@mui/material/IconButton'
 import SendIcon from '@mui/icons-material/Send'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
-function MessageView ({ socket, windowHeight, meeting, closeDrawer, ...props }) {
-  const [messages, setMessages] = useState([])
-  const [input, setInput] = useState(null)
+class MessageView extends React.Component {
+  constructor(props) {
+    super(props)
+    this.socket = props.socket
+    this.meeting = props.meeting
+    this.closeDrawer = props.closeDrawer
+    this.state = {
+      winHeight: window.innerHeight,
+      winWidth: window.innerWidth,
+      messages: [],
+      input: ""
+    }
+
+    // Socket RECEIVED-MESSAGE event listener, appends new
+    // remote messages to the messages state.
+    this.socket.on('RECEIVED-MESSAGE', msg => {
+      // Message isn't empty space
+      if (msg.Data.match(/^ *$/) !== null) return
+
+      this.setState({...this.state, messages: [
+        ...this.state.messages, {
+        data: msg.Data,
+        from: msg.Username,
+        type: 'other'
+      }]})
+    })
+  }
+
+  // Updates state to reflect changes to window height/width
+  resize() {
+    if (window.innerHeight != this.state.winHeight) {
+      this.setState({...this.state, winHeight: window.innerHeight})
+    }
+
+    if (window.innerWidth != this.state.winWidth) {
+      this.setState({...this.state, winWidth: window.innerWidth})
+    }
+  }
+
+  componentDidMount() {
+    window.addEventListener("resize", this.resize.bind(this))
+    
+    // Try to load any messages from localStorage into state
+    // (if applicable)
+    try {
+      const msgData = JSON.parse(localStorage.getItem('Messages'))
+
+      // Delete if its old data from another meeting
+      if (msgData.meeting !== this.meeting) {
+        localStorage.removeItem('Messages')
+        return
+      }
+
+      this.setState({...this.state, messages: msgData.messages})
+    } catch (e) {}
+  }
 
   // Scrolls all the way to the bottom of the message view
   // useful for when we want new messages to be immediately
   // visible to the client
-  const scrollDown = () => {
+  scrollDown() {
     document.getElementById('messages').scrollTop =
-        document.getElementById('messages').scrollHeight + 250
+      document.getElementById('messages').scrollHeight + 250
   }
 
   // Writes the client's messages to localStorage so they
   // can be retrieved after refresh, etc.
-  const saveToStorage = () => {
+  saveToStorage() {
     const store = JSON.stringify({
-      meeting: meeting,
-      messages: messages
+      meeting: this.meeting,
+      messages: this.state.messages
     })
 
     localStorage.setItem('Messages', store)
   }
 
-  // Try to load any messages from localStorage into state
-  // Runs only once - when component is mounted
-  useEffect(() => {
-    try {
-      const msgData = JSON.parse(localStorage.getItem('Messages'))
-
-      // Delete if its old data from another meeting
-      if (msgData.meeting !== meeting) {
-        localStorage.removeItem('Messages')
-        return
-      }
-
-      setMessages(msgData.messages)
-    } catch (e) {}
-  }, [])
-
-  // Saves meeting messages to localStorage so they can be
-  // retrieved in case of a refresh, etc.
-  // Runs any time the messages state is updated.
-  useEffect(() => {
-    saveToStorage()
-    scrollDown()
-  }, [messages])
-
-  // Socket RECEIVED-MESSAGE event listener, appends new
-  // remote messages to the messages state.
-  socket.on('RECEIVED-MESSAGE', msg => {
-    if (msg.Data.match(/^ *$/) !== null) return
-
-    setMessages([...messages, {
-      data: msg.Data,
-      from: msg.Username,
-      type: 'other'
-    }])
-  })
-
-  // Runs when the client submits the new message form,
-  // broadcasts his message to the server and appends
-  // it to the message state.
-  const onSubmit = (e) => {
-    e.preventDefault()
-
-    if (input.match(/^ *$/) !== null) return
-
-    setMessages([...messages, {
-      data: input,
-      from: null,
-      type: 'self'
-    }])
-
-    socket.emit('SENT-MESSAGE', {
-      message: input
-    })
-
-    // Clears the input text field
-    setInput('')
+  componentDidUpdate(_, prevState) {
+    // If client receives a new message, backup messages
+    // to localStorage and scroll the message view to the
+    // bottom.
+    if (prevState.messages != this.state.messages) {
+      this.saveToStorage()
+      this.scrollDown()
+    }
   }
 
-  const renderMessages = () => {
-    if (messages.length === 0) {
+  onSubmit(e) {
+    e.preventDefault()
+
+    // Message is not empty space
+    if (this.state.input.match(/^ *$/) !== null) return
+
+    // Appends new message to state and clears input
+    this.setState({...this.state, input: "", messages: [
+      ...this.state.messages, {
+      data: this.state.input,
+      from: null,
+      type: 'self'
+    }]})
+
+    this.socket.emit('SENT-MESSAGE', {
+      message: this.state.input
+    })
+  }
+
+  renderMessages() {
+    if (this.state.messages.length === 0) {
       return (
         <p style={{
           fontSize: '14px',
@@ -108,7 +132,7 @@ function MessageView ({ socket, windowHeight, meeting, closeDrawer, ...props }) 
       )
     }
 
-    return messages.map((msg, i) => {
+    return this.state.messages.map((msg, i) => {
       return (
         <Message
           key={i}
@@ -120,17 +144,17 @@ function MessageView ({ socket, windowHeight, meeting, closeDrawer, ...props }) 
     })
   }
 
-  const drawerWidth = () => {
-    if (window.innerWidth > 569) return { width: '260px' }
-    else return { width: window.innerWidth.toString() + 'px' }
+  drawerWidth() {
+    if (this.state.winWidth > 569) return { width: '260px' }
+    else return { width: this.state.winWidth.toString() + 'px' }
   }
 
-  const showReturnButton = () => {
-    if (window.innerWidth > 569) return null
+  showReturnButton() {
+    if (this.state.winWidth > 569) return null
     return (
       <IconButton
         className='max-drawer-return' onClick={() => {
-          closeDrawer()
+          this.closeDrawer()
         }}
       >
         <ArrowBackIcon />
@@ -138,37 +162,39 @@ function MessageView ({ socket, windowHeight, meeting, closeDrawer, ...props }) 
     )
   }
 
-  return (
-    <div className='message-view' style={drawerWidth()}>
-      {showReturnButton()}
-      <div
-        id='messages' style={{
-          width: '100%',
-          height: `${(0.85 * windowHeight).toString()}px`,
-          overflowY: 'auto'
-        }}
-      >{renderMessages()}
-      </div>
-      <form onSubmit={onSubmit.bind(this)}>
-        <TextField
-          label='Message' autoComplete='off' variant='standard' style={{ width: '100%' }}
-          value={input}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position='start'>
-                <IconButton
-                  size='small' aria-controls='menu-appbar' aria-haspopup='true'
-                  color='inherit' type='submit'
-                > <SendIcon />
-                </IconButton>
-              </InputAdornment>
-            )
+  render() {
+    return (
+      <div className='message-view' style={this.drawerWidth()}>
+        {this.showReturnButton()}
+        <div
+          id='messages' style={{
+            width: '100%',
+            height: `${(0.85 * this.state.winHeight).toString()}px`,
+            overflowY: 'auto'
           }}
-          onChange={(e) => setInput(e.target.value)}
-        />
-      </form>
-    </div>
-  )
+        >{this.renderMessages()}
+        </div>
+        <form onSubmit={this.onSubmit.bind(this)}>
+          <TextField
+            label='Message' autoComplete='off' variant='standard' style={{ width: '100%' }}
+            value={this.state.input}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='start'>
+                  <IconButton
+                    size='small' aria-controls='menu-appbar' aria-haspopup='true'
+                    color='inherit' type='submit'
+                  > <SendIcon />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+            onChange={(e) => this.setState({...this.state, input: e.target.value})}
+          />
+        </form>
+      </div>
+    )
+  }
 }
 
 export default MessageView

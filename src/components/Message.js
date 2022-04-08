@@ -1,39 +1,55 @@
 import Typography from '@mui/material/Typography'
+import React from 'react'
 
-function Message ({ data, from, type, ...props }) {
-  // Sanitise HTML tags
-  data = data.replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace('"', '&quot;')
-    .replace("'", '&apos;')
+class Message extends React.Component {
+  constructor(props) {
+    super(props)
 
-  // Set the style based on who sent the message
-  const className = (type === 'self')
-    ? 'message-self'
-    : 'message-other'
+    // Sender username
+    this.from = props.from
 
-  // Dont show sender username if sender is self
-  // @TODO: Dont show senderLbl when 'from' equals our own username
-  const senderLbl = (type !== 'self')
-    ? (<h4> {from} </h4>)
-    : ('')
+    // A message sent from 'self' 
+    // or 'other'
+    this.type = props.type
 
-  return (
-    <div>
-      {senderLbl}
-      <div className={className}>
-        <Typography
-          color='inherit'
-          component='div'
-          style={{
-            fontSize: '15px',
-            wordWrap: 'break-word'
-          }}
-        > {data}
-        </Typography>
+    // Sanitise HTML tags
+    this.data = props.data
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace('"', '&quot;')
+      .replace("'", '&apos;')
+    
+    // Set the style based on who sent the message
+    this.className = (this.type === 'self')
+      ? 'message-self'
+      : 'message-other'
+    
+    // Decide whether to display the sender's
+    // username above the message (only for 
+    // messages sent from a remote client)
+    this.senderLbl = (this.type !== 'self')
+      ? (<h4> {this.from} </h4>)
+      : ('')
+  }
+
+  render () {
+    return (
+      <div>
+        {this.senderLbl}
+        <div className={this.className}>
+          <Typography
+            color='inherit'
+            component='div'
+            style={{
+              fontSize: '15px',
+              wordWrap: 'break-word'
+            }}
+          > {this.data}
+          </Typography>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 export default Message
