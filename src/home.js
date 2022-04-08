@@ -1,4 +1,3 @@
-/* global localStorage */
 import './css/home.css'
 import React from 'react'
 import AlertWrapper from './components/AlertWrapper'

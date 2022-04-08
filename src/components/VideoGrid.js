@@ -3,7 +3,7 @@ import Stream from './Stream'
 import AlertWrapper from './AlertWrapper'
 
 class VideoGrid extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.feed = props.feed
     this.socket = props.socket
@@ -12,7 +12,7 @@ class VideoGrid extends React.Component {
     this.JWT = props.JWT
 
     this.peers = {}
-    
+
     this.state = {
       winHeight: window.innerHeight,
       winWidth: window.innerWidth,
@@ -35,7 +35,7 @@ class VideoGrid extends React.Component {
       // Video calls are currently limited to only one other
       // peer
       this.socket.on('CALL-REQUEST', peerID => {
-        if (peerID == this.peer.id) return
+        if (peerID === this.peer.id) return
         if (this.state.streams.length > 1) return
         const call = this.peer.call(peerID, this.feed)
         this.handleStream(call)
@@ -49,7 +49,7 @@ class VideoGrid extends React.Component {
     })
   }
 
-  waitToEnter() {
+  waitToEnter () {
     return new Promise((resolve, reject) => {
       this.socket.on('ENTER-SUCCESS', resolve)
       this.socket.emit('ENTER-MEETING', {
@@ -59,13 +59,13 @@ class VideoGrid extends React.Component {
     })
   }
 
-  handleStream(call) {
+  handleStream (call) {
     call.on('stream', remoteStream => {
       if (!this.peers[call.peer]) {
         this.setState({
-          ...this.state, 
+          ...this.state,
           streams: [
-            {peerID: call.peer, stream: remoteStream}, 
+            { peerID: call.peer, stream: remoteStream },
             ...this.state.streams
           ]
         })
@@ -74,7 +74,7 @@ class VideoGrid extends React.Component {
     })
   }
 
-  handleDisconnect(msg) {
+  handleDisconnect (msg) {
     const index = this.state.streams.findIndex(stream => stream.peerID === msg.PeerID)
     // If found
     if (index > -1) {
@@ -83,40 +83,39 @@ class VideoGrid extends React.Component {
 
       // Remove the bad stream and update state
       newStreams.splice(index, 1)
-      this.setState({...this.state, streams: newStreams})
+      this.setState({ ...this.state, streams: newStreams })
 
       // Alert user
       this.showAlert('Peer disconnected')
     }
   }
 
-  resize() {
-    if (window.innerHeight != this.state.winHeight) {
-      this.setState({...this.state, winHeight: window.innerHeight})
+  resize () {
+    if (window.innerHeight !== this.state.winHeight) {
+      this.setState({ ...this.state, winHeight: window.innerHeight })
     }
 
-    if (window.innerWidth != this.state.winWidth) {
-      this.setState({...this.state, winWidth: window.innerWidth})
+    if (window.innerWidth !== this.state.winWidth) {
+      this.setState({ ...this.state, winWidth: window.innerWidth })
     }
   }
 
-  componentDidMount() {
-    window.addEventListener("resize", this.resize.bind(this))
+  componentDidMount () {
+    window.addEventListener('resize', this.resize.bind(this))
   }
 
-  componentDidUpdate(oldProps) {
-    if (oldProps.pVideo != this.props.pVideo || 
-        oldProps.pAudio != this.props.pAudio) {
-      
+  componentDidUpdate (oldProps) {
+    if (oldProps.pVideo !== this.props.pVideo ||
+        oldProps.pAudio !== this.props.pAudio) {
       this.setState({
-        ...this.state, 
-        pVideo: this.props.pVideo, 
+        ...this.state,
+        pVideo: this.props.pVideo,
         pAudio: this.props.pAudio
       })
     }
   }
 
-  render() {
+  render () {
     return (
       <div className='video-grid'>
         {

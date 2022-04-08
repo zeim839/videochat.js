@@ -2,13 +2,13 @@ import Typography from '@mui/material/Typography'
 import React from 'react'
 
 class Message extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
 
     // Sender username
     this.from = props.from
 
-    // A message sent from 'self' 
+    // A message sent from 'self'
     // or 'other'
     this.type = props.type
 
@@ -18,14 +18,14 @@ class Message extends React.Component {
       .replace(/>/g, '&gt;')
       .replace('"', '&quot;')
       .replace("'", '&apos;')
-    
+
     // Set the style based on who sent the message
     this.className = (this.type === 'self')
       ? 'message-self'
       : 'message-other'
-    
+
     // Decide whether to display the sender's
-    // username above the message (only for 
+    // username above the message (only for
     // messages sent from a remote client)
     this.senderLbl = (this.type !== 'self')
       ? (<h4> {this.from} </h4>)

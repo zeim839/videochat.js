@@ -1,4 +1,3 @@
-/* global localStorage */
 import './css/video.css'
 import React from 'react'
 import { useParams } from 'react-router-dom'
@@ -39,7 +38,7 @@ class Video extends React.Component {
     // Specifies the width of the
     // drawer where the client can
     // type and view messages
-    this.drawerWidth = "0px"
+    this.drawerWidth = '0px'
 
     this.state = {
       PeerID: null,
@@ -62,12 +61,10 @@ class Video extends React.Component {
       // peers
       if (msg.Error === 'Meeting expired.' ||
           msg.Error === 'Meeting full.' ||
-          msg.Error === 'Failed to authenticate. Please try again.' ) {
-
+          msg.Error === 'Failed to authenticate. Please try again.') {
         setTimeout(() => {
           window.location.replace('/')
         }, 4000)
-
       }
 
       this.showAlert(msg.Error)
@@ -89,14 +86,13 @@ class Video extends React.Component {
   // Takes session parameters (all strings) as input,
   // updates class variables, saves session to localStorage
   // and updates the state so the client can proceed to
-  // ask the user for stream permissions. 
+  // ask the user for stream permissions.
   setSession (username, password, admin, jwt) {
     this.Username = username
     this.Password = password
     this.Admin = admin
     this.JWT = jwt
     this.setState({ ...this.state, SignedIn: true })
-
 
     // Create a session object
     const session = {
@@ -111,13 +107,13 @@ class Video extends React.Component {
 
     // Store session information to local storage
     // so we can automatically sign-in when the page
-    // refreshes. 
+    // refreshes.
     localStorage.setItem('Session', message)
   }
 
   // Takes a mediaStream object as input and updates the
   // state. setFeed is passed as a prop to VideoGrid
-  // (which handles establishing a stream/feed). 
+  // (which handles establishing a stream/feed).
   setFeed (stream) {
     this.setState({ ...this.state, Feed: stream })
   }
@@ -129,8 +125,8 @@ class Video extends React.Component {
     if (perm === 'audio') this.setState({ ...this.state, PAudio: !this.state.PAudio })
   }
 
-  // Copies meeting details into the user's clipboard, 
-  // and displays a success alert. 
+  // Copies meeting details into the user's clipboard,
+  // and displays a success alert.
   shareCall () {
     // Get the current site URL
     const url = window.location.href
@@ -148,16 +144,16 @@ class Video extends React.Component {
     })
   }
 
-  // Ends the call by reloading the page. This causes the 
-  // socket connection to terminate, at which point the 
-  // server automatically tells all peers that the client 
-  // has disconnected. 
-  endCall() {
+  // Ends the call by reloading the page. This causes the
+  // socket connection to terminate, at which point the
+  // server automatically tells all peers that the client
+  // has disconnected.
+  endCall () {
     window.location.reload()
   }
 
   // Toggles the drawer's state (on/off), and hence opens
-  // and closes the messageView. 
+  // and closes the messageView.
   toggleDrawer () {
     this.drawerWidth = (this.drawerWidth === '0px') ? '260px' : '0px'
     this.setState({ ...this.state, chatDrawer: !this.state.chatDrawer })
@@ -168,20 +164,20 @@ class Video extends React.Component {
   }
 
   render () {
-    // Wait for PeerID to be established, client cant sign-in
-    // without one, so show a loading screen in the meantime. 
     if (this.state.PeerID === null) {
+      // Wait for PeerID to be established, client cant sign-in
+      // without one, so show a loading screen in the meantime.
+
       return (
         <div className='video-page'>
           {Loading()}
         </div>
       )
-    } 
-    
-    // Once a PeerID is established, the user needs to sign-in.
-    // The SignIntoMeeting component will either restore a session
-    // from localStorage or show a log-in prompt. 
-    else if (!this.state.SignedIn) {
+    } else if (!this.state.SignedIn) {
+      // Once a PeerID is established, the user needs to sign-in.
+      // The SignIntoMeeting component will either restore a session
+      // from localStorage or show a log-in prompt.
+
       return (
         <div className='video-page'>
           <SignIntoMeeting
@@ -190,12 +186,11 @@ class Video extends React.Component {
           />
         </div>
       )
-    } 
-    
-    // Once logged in, the client asks the user for permission to
-    // access his webcam and microphone. We can't call peers without
-    // a stream. 
-    else if (this.state.Feed === null) {
+    } else if (this.state.Feed === null) {
+      // Once logged in, the client asks the user for permission to
+      // access his webcam and microphone. We can't call peers without
+      // a stream.
+
       return (
         <div className='video-page'>
           <GetFeedPrompt
@@ -204,11 +199,9 @@ class Video extends React.Component {
           />
         </div>
       )
-    } 
-    
-    // The client is ready to enter the meeting and start 
-    // connecting to other peers. 
-    else {
+    } else {
+      // The client is ready to enter the meeting and start
+      // connecting to other peers.
       return (
         <div className='video-page'>
           <Drawer
@@ -249,7 +242,7 @@ class Video extends React.Component {
                   htmlColor='white'
                 />
               </IconButton>
-              <IconButton size='large' color='inherit' onClick={this.endCall}>
+              <IconButton size='large' color='inherit' onClick={this.endCall}> 
                 <CallEndIcon htmlColor='white' />
               </IconButton>
               <Divider orientation='vertical' color='inherit' class='divider' flexItem />

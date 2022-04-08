@@ -40,13 +40,14 @@
     "test": "concurrently \"npm start\" \"npx cypress open\"",
     "serve": "nodemon app.js",
     "eject": "react-scripts eject",
-    "lint": "standard --fix"
+    "lint": "standard --fix "
   },
   "standard": {
     "ignore": [
       "cypress/*",
       "package.json"
-    ]
+    ], 
+    "globals": [ "localStorage" ]
   },
   "eslintConfig": {
     "extends": [

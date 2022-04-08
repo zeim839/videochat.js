@@ -1,4 +1,3 @@
-/* global localStorage */
 import React from 'react'
 
 import Message from './Message'
@@ -10,7 +9,7 @@ import SendIcon from '@mui/icons-material/Send'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
 class MessageView extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.socket = props.socket
     this.meeting = props.meeting
@@ -19,7 +18,7 @@ class MessageView extends React.Component {
       winHeight: window.innerHeight,
       winWidth: window.innerWidth,
       messages: [],
-      input: ""
+      input: ''
     }
 
     // Socket RECEIVED-MESSAGE event listener, appends new
@@ -28,29 +27,32 @@ class MessageView extends React.Component {
       // Message isn't empty space
       if (msg.Data.match(/^ *$/) !== null) return
 
-      this.setState({...this.state, messages: [
-        ...this.state.messages, {
-        data: msg.Data,
-        from: msg.Username,
-        type: 'other'
-      }]})
+      this.setState({
+        ...this.state,
+        messages: [
+          ...this.state.messages, {
+            data: msg.Data,
+            from: msg.Username,
+            type: 'other'
+          }]
+      })
     })
   }
 
   // Updates state to reflect changes to window height/width
-  resize() {
-    if (window.innerHeight != this.state.winHeight) {
-      this.setState({...this.state, winHeight: window.innerHeight})
+  resize () {
+    if (window.innerHeight !== this.state.winHeight) {
+      this.setState({ ...this.state, winHeight: window.innerHeight })
     }
 
-    if (window.innerWidth != this.state.winWidth) {
-      this.setState({...this.state, winWidth: window.innerWidth})
+    if (window.innerWidth !== this.state.winWidth) {
+      this.setState({ ...this.state, winWidth: window.innerWidth })
     }
   }
 
-  componentDidMount() {
-    window.addEventListener("resize", this.resize.bind(this))
-    
+  componentDidMount () {
+    window.addEventListener('resize', this.resize.bind(this))
+
     // Try to load any messages from localStorage into state
     // (if applicable)
     try {
@@ -62,21 +64,21 @@ class MessageView extends React.Component {
         return
       }
 
-      this.setState({...this.state, messages: msgData.messages})
+      this.setState({ ...this.state, messages: msgData.messages })
     } catch (e) {}
   }
 
   // Scrolls all the way to the bottom of the message view
   // useful for when we want new messages to be immediately
   // visible to the client
-  scrollDown() {
+  scrollDown () {
     document.getElementById('messages').scrollTop =
       document.getElementById('messages').scrollHeight + 250
   }
 
   // Writes the client's messages to localStorage so they
   // can be retrieved after refresh, etc.
-  saveToStorage() {
+  saveToStorage () {
     const store = JSON.stringify({
       meeting: this.meeting,
       messages: this.state.messages
@@ -85,36 +87,40 @@ class MessageView extends React.Component {
     localStorage.setItem('Messages', store)
   }
 
-  componentDidUpdate(_, prevState) {
+  componentDidUpdate (_, prevState) {
     // If client receives a new message, backup messages
     // to localStorage and scroll the message view to the
     // bottom.
-    if (prevState.messages != this.state.messages) {
+    if (prevState.messages !== this.state.messages) {
       this.saveToStorage()
       this.scrollDown()
     }
   }
 
-  onSubmit(e) {
+  onSubmit (e) {
     e.preventDefault()
 
     // Message is not empty space
     if (this.state.input.match(/^ *$/) !== null) return
 
     // Appends new message to state and clears input
-    this.setState({...this.state, input: "", messages: [
-      ...this.state.messages, {
-      data: this.state.input,
-      from: null,
-      type: 'self'
-    }]})
+    this.setState({
+      ...this.state,
+      input: '',
+      messages: [
+        ...this.state.messages, {
+          data: this.state.input,
+          from: null,
+          type: 'self'
+        }]
+    })
 
     this.socket.emit('SENT-MESSAGE', {
       message: this.state.input
     })
   }
 
-  renderMessages() {
+  renderMessages () {
     if (this.state.messages.length === 0) {
       return (
         <p style={{
@@ -144,12 +150,12 @@ class MessageView extends React.Component {
     })
   }
 
-  drawerWidth() {
+  drawerWidth () {
     if (this.state.winWidth > 569) return { width: '260px' }
     else return { width: this.state.winWidth.toString() + 'px' }
   }
 
-  showReturnButton() {
+  showReturnButton () {
     if (this.state.winWidth > 569) return null
     return (
       <IconButton
@@ -162,7 +168,7 @@ class MessageView extends React.Component {
     )
   }
 
-  render() {
+  render () {
     return (
       <div className='message-view' style={this.drawerWidth()}>
         {this.showReturnButton()}
@@ -189,7 +195,7 @@ class MessageView extends React.Component {
                 </InputAdornment>
               )
             }}
-            onChange={(e) => this.setState({...this.state, input: e.target.value})}
+            onChange={(e) => this.setState({ ...this.state, input: e.target.value })}
           />
         </form>
       </div>

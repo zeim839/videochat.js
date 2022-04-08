@@ -14,10 +14,10 @@ class GetFeedPrompt extends React.Component {
     this.setFeed = props.setFeed
     this.togglePermission = props.togglePermission
     this.showAlert = props.showAlert
-    this.state = {loading: false}
+    this.state = { loading: false }
   }
 
-  redirect() {
+  redirect () {
     setTimeout(() => {
       window.location.replace('/')
     }, 4000)
@@ -30,15 +30,15 @@ class GetFeedPrompt extends React.Component {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
         this.setFeed(stream)
-      }).catch(error => {
+      }).catch(_ => {
         this.showAlert('Failed to initialise stream. Redirecting...')
-        //this.redirect()
+        this.redirect()
       })
   }
 
   onSubmit (e) {
     e.preventDefault()
-    this.setState({loading: true}, () => this.establishFeed())
+    this.setState({ loading: true }, () => this.establishFeed())
   }
 
   toggleAudio () {
