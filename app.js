@@ -17,7 +17,7 @@ const HTTP_PORT = 3001
 const PEER_PORT = 3002
 const SECURE = true
 const DB_NAME = 'CHATDB'
-const SESSION_EXPIRE_AFTER = 86400 // Lifespan of a meeting in ms (24 HOURS)
+const SESSION_EXPIRE_AFTER = 86400 // Lifespan of a meeting in secs (24 HOURS)
 const JWT_HEADER = base64.encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
 
 // Set up dotenv so we can privately pass DB credentials
@@ -26,7 +26,14 @@ dotenv.config()
 // Connect to the MongoDB database using creds from dotenv file
 const db = new MongoClient(process.env.CONN_URI)
 
-const connectToDb = async () => await db.connect()
+const connectToDb = async () => {
+  await db.connect()
+
+  // Create TTL indices (auto-expire docs)
+  db.db(DB_NAME).collection('Meetings').createIndex({ Date: 1 }, { expireAfterSeconds: SESSION_EXPIRE_AFTER })
+  db.db(DB_NAME).collection('Users').createIndex({ Date: 1 }, { expireAfterSeconds: SESSION_EXPIRE_AFTER })
+}
+
 connectToDb().catch(console.error)
 
 // Serves the build folder (which includes our public HTML sites)
@@ -71,8 +78,7 @@ app.post('/api/create-meeting', async (req, res) => {
     Password: bcrypt.hashSync(req.body.Password, salt),
     Admin: req.body.Username,
     Salt: salt,
-    Date: Date(new Date().valueOf()),
-    expireAfterSeconds: SESSION_EXPIRE_AFTER
+    Date: new Date()
   }
 
   // Add meeting to database
@@ -88,7 +94,7 @@ app.post('/api/create-meeting', async (req, res) => {
     MeetingID: id,
     Username: req.body.Username,
     Admin: true,
-    expireAfterSeconds: SESSION_EXPIRE_AFTER
+    Date: meeting.Date
   }).catch((e) => {
     res.status(500).send({ Error: 'Database internal error.' })
     throw e
@@ -148,7 +154,7 @@ app.post('/api/sign-in', async (req, res) => {
     MeetingID: req.body.Meeting,
     Username: req.body.Username,
     Admin: false,
-    expireAfterSeconds: SESSION_EXPIRE_AFTER
+    Date: meetingExists.Date
   }).catch((e) => {
     res.status(500).send({ Error: 'Database internal error.' })
     throw e
