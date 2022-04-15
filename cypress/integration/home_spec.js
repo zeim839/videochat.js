@@ -1,6 +1,68 @@
 const base64 = require('base-64')
 
-describe('Create a meeting', () => {
+describe('Home page', () => {
+  it('Redirects to a newly created meeting page', () => {
+    cy.visit('http://localhost:3000')
+
+    // Fill form
+    cy.get('input[id="mui-1"]')
+      .type('myUsername')
+    cy.get('input[id="mui-2"]')
+      .type('myPass')
+
+    // Submit form
+    cy.get('button')
+      .click()
+
+    cy.url().should('include', '/meeting')
+  })
+
+  it("Saves new session data onto localStorage in base64 encoding", () => {
+    cy.clearLocalStorage()
+    cy.visit('http://localhost:3000')
+
+    // Sign into a meeting
+    cy.get('input[id="mui-1"]')
+      .type('Username')
+
+    cy.get('input[id="mui-2"]')
+      .type('Password')
+
+    cy.get('button')
+      .click()
+      .should(() => {
+        // Client save session to localStorage
+        expect(localStorage.getItem('Session')).not.eq(null || undefined)
+
+        // Expect base64 encoding
+        const base64decoded = base64.decode(localStorage.getItem('Session'))
+        expect(base64decoded).not.eq(null || undefined)
+
+        // Expect to be able to parse as JSON
+        const session = JSON.parse(base64decoded)
+        expect(session).not.eq(null || undefined)
+
+        // Expect Session key/values to exist and not be null
+        expect(session.Username).not.eq(null || undefined)
+        expect(session.Meeting).not.eq(null || undefined)
+        expect(session.Password).not.eq(null || undefined)
+        expect(session.Admin).not.eq(null || undefined)
+        expect(session.JWT).not.eq(null || undefined)
+      })
+  })
+
+  it("Hides the banner for responsiveness", () => {
+    cy.visit('http://localhost:3000')
+
+    // Test on some generic phone
+    cy.viewport('iphone-6')
+
+    cy.get('div[id="banner"]')
+      .should('not.be.visible')
+  })
+})
+
+describe("Create meeting form", () => {
   it('Reflects input when we enter username and password', () => {
     cy.visit('http://localhost:3000')
     cy.get('input[id="mui-1"]')
@@ -42,23 +104,7 @@ describe('Create a meeting', () => {
     cy.get('.MuiSnackbarContent-message')
       .should('not.be.visible')
   })
-
-  it('Redirects to a newly created meeting page', () => {
-    cy.visit('http://localhost:3000')
-
-    // Fill form
-    cy.get('input[id="mui-1"]')
-      .type('myUsername')
-    cy.get('input[id="mui-2"]')
-      .type('myPass')
-
-    // Submit form
-    cy.get('button')
-      .click()
-
-    cy.url().should('include', '/meeting')
-  })
-
+  
   it("Displays error message when username is whitespace", () => {
     cy.visit('http://localhost:3000')
     
@@ -118,50 +164,6 @@ describe('Create a meeting', () => {
       .click()
 
     cy.get('.MuiSnackbarContent-message')
-      .should('not.be.visible')
-  })
-
-  it("Saves new session data onto localStorage in base64 encoding", () => {
-    cy.clearLocalStorage()
-    cy.visit('http://localhost:3000')
-
-    // Sign into a meeting
-    cy.get('input[id="mui-1"]')
-      .type('Username')
-
-    cy.get('input[id="mui-2"]')
-      .type('Password')
-
-    cy.get('button')
-      .click()
-      .should(() => {
-        // Client save session to localStorage
-        expect(localStorage.getItem('Session')).not.eq(null || undefined)
-
-        // Expect base64 encoding
-        const base64decoded = base64.decode(localStorage.getItem('Session'))
-        expect(base64decoded).not.eq(null || undefined)
-
-        // Expect to be able to parse as JSON
-        const session = JSON.parse(base64decoded)
-        expect(session).not.eq(null || undefined)
-
-        // Expect Session key/values to exist and not be null
-        expect(session.Username).not.eq(null || undefined)
-        expect(session.Meeting).not.eq(null || undefined)
-        expect(session.Password).not.eq(null || undefined)
-        expect(session.Admin).not.eq(null || undefined)
-        expect(session.JWT).not.eq(null || undefined)
-      })
-  })
-
-  it("Hides the banner for responsiveness", () => {
-    cy.visit('http://localhost:3000')
-
-    // Test on some generic phone
-    cy.viewport('iphone-6')
-
-    cy.get('div[id="banner"]')
       .should('not.be.visible')
   })
 })
