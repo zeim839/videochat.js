@@ -46,8 +46,10 @@
     "ignore": [
       "cypress/*",
       "package.json"
-    ], 
-    "globals": [ "localStorage" ]
+    ],
+    "globals": [
+      "localStorage"
+    ]
   },
   "eslintConfig": {
     "extends": [
@@ -68,6 +70,7 @@
     ]
   },
   "devDependencies": {
-    "cypress": "^9.5.3"
+    "cypress": "^9.5.3",
+    "cypress-localstorage-commands": "^1.7.0"
   }
 }
