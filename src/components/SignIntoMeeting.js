@@ -54,12 +54,12 @@ class SignIntoMeeting extends React.Component {
   // an error prompt if the inputs are invalid.
   validate () {
     // Ensure fields are non-empty
-    if (this.state.Username.match(/^\s*$/) === '') {
+    if (this.state.Username.match(/^\s*$/) !== null) {
       this.showAlert('Username cannot be empty')
       return false
     }
 
-    if (this.state.Password.match(/^\s*$/) === '') {
+    if (this.state.Password.match(/^\s*$/) !== null) {
       this.showAlert('Password cannot be empty')
       return false
     }

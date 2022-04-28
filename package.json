@@ -1,6 +1,6 @@
 {
   "name": "videochat.js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "proxy": "http://localhost:3001/",
   "private": true,
   "dependencies": {
@@ -44,11 +44,13 @@
   },
   "standard": {
     "ignore": [
-      "cypress/*",
+      "cypress/fixtures/*",
+      "cypress/plugins/*",
+      "cypress/support/*",
       "package.json"
     ],
     "globals": [
-      "localStorage"
+      "localStorage", "describe", "it", "cy", "expect", "afterEach", "beforeEach", "before"
     ]
   },
   "eslintConfig": {
@@ -70,6 +72,7 @@
     ]
   },
   "devDependencies": {
-    "cypress": "^9.5.3"
+    "cypress": "^9.5.3",
+    "cypress-localstorage-commands": "^1.7.0"
   }
 }
