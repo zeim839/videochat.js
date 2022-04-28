@@ -17,7 +17,7 @@ describe('Home page', () => {
     cy.url().should('include', '/meeting')
   })
 
-  it("Saves new session data onto localStorage in base64 encoding", () => {
+  it('Saves new session data onto localStorage in base64 encoding', () => {
     cy.clearLocalStorage()
     cy.visit('http://localhost:3000')
 
@@ -51,7 +51,7 @@ describe('Home page', () => {
       })
   })
 
-  it("Hides the banner for responsiveness", () => {
+  it('Hides the banner for responsiveness', () => {
     cy.visit('http://localhost:3000')
 
     // Test on some generic phone
@@ -62,9 +62,12 @@ describe('Home page', () => {
   })
 })
 
-describe("Create meeting form", () => {
-  it('Reflects input when we enter username and password', () => {
+describe('Create meeting form', () => {
+  beforeEach(() => {
     cy.visit('http://localhost:3000')
+  })
+
+  it('Reflects input when we enter username and password', () => {
     cy.get('input[id="mui-1"]')
       .type('myUsername')
       .should('have.value', 'myUsername')
@@ -74,8 +77,6 @@ describe("Create meeting form", () => {
   })
 
   it('Displays an error message when the password is too short', () => {
-    cy.visit('http://localhost:3000')
-
     // Fill in sample username
     cy.get('input[id="mui-1"]')
       .type('myUsername')
@@ -89,12 +90,9 @@ describe("Create meeting form", () => {
     cy.get('button')
       .click()
 
-    // Error message pops up
+    // Error message
     cy.get('.MuiSnackbarContent-message')
       .should('be.visible')
-
-    // Correct error message value
-    cy.get('.MuiSnackbarContent-message')
       .should('have.text', 'Password must be at least 4 characters')
 
     // Error message dissapears when we click away
@@ -104,10 +102,8 @@ describe("Create meeting form", () => {
     cy.get('.MuiSnackbarContent-message')
       .should('not.be.visible')
   })
-  
-  it("Displays error message when username is whitespace", () => {
-    cy.visit('http://localhost:3000')
-    
+
+  it('Displays error message when username is whitespace', () => {
     // Fill the username form with whitespace
     cy.get('input[id="mui-1"]')
       .type('   ')
@@ -122,10 +118,7 @@ describe("Create meeting form", () => {
 
     // Error message pops up
     cy.get('.MuiSnackbarContent-message')
-    .should('be.visible')
-
-    // Correct error message value
-    cy.get('.MuiSnackbarContent-message')
+      .should('be.visible')
       .should('have.text', 'Username cannot be empty')
 
     // Error message dissapears when we click away
@@ -136,9 +129,7 @@ describe("Create meeting form", () => {
       .should('not.be.visible')
   })
 
-  it("Displays error message when password is whitespace", () => {
-    cy.visit('http://localhost:3000')
-    
+  it('Displays error message when password is whitespace', () => {
     // Fill the password form with whitespace
     cy.get('input[id="mui-2"]')
       .type('    ')
@@ -153,10 +144,7 @@ describe("Create meeting form", () => {
 
     // Error message pops up
     cy.get('.MuiSnackbarContent-message')
-    .should('be.visible')
-
-    // Correct error message value
-    cy.get('.MuiSnackbarContent-message')
+      .should('be.visible')
       .should('have.text', 'Password cannot be empty')
 
     // Error message dissapears when we click away
