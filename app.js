@@ -59,7 +59,7 @@ const rooms = {}
 app.get('/meeting/:meet', async (req, res) => {
   // Verify meeting exists
   const meetingExists = await db.db(DB_NAME).collection('Meetings')
-    .findOne({ MeetingID: req.params.room })
+    .findOne({ MeetingID: req.params.meet })
   
   if (!meetingExists) {
     res.redirect('/')
