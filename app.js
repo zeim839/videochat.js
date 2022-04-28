@@ -77,6 +77,24 @@ app.post('/api/create-meeting', async (req, res) => {
     return
   }
 
+  // Username is not empty
+  if (req.body.Username.match(/^ *$/) !== null) {
+    res.status(400).send({ Error: 'Username cannot be empty or whitespace.' })
+    return
+  }
+
+  // Password is not empty
+  if (req.body.Password.match(/^ *$/) !== null) {
+    res.status(400).send({ Error: 'Password cannot be empty or whitespace.' })
+    return
+  }
+
+  // Enfore minimum 4 character password length
+  if (req.body.Password.length < 4) {
+    res.status(400).send({ Error: 'Password must be at least 4 characters.' })
+    return
+  }
+
   // Create meeting
   const id = uuidv4().slice(0, 8)
   const JWT = createJWT(id, req.body.Username, true)
@@ -123,6 +141,12 @@ app.post('/api/sign-in', async (req, res) => {
      !('Password' in req.body) ||
      !('Meeting' in req.body)) {
     res.status(400).send({ Error: 'Invalid Request' })
+    return
+  }
+
+  // Username is not empty
+  if (req.body.Username.match(/^ *$/) !== null) {
+    res.status(400).send({ Error: 'Username cannot be empty or whitespace.' })
     return
   }
 
