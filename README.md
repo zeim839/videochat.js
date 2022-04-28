@@ -6,6 +6,7 @@ P2P room-based video conferencing built with react.js, peer.js and express serve
 ## Table of Contents
 - [Install](#install)
 - [Usage](#usage)
+- [Testing](#testing)
 - [Security](#security)
 - [Contributing](#contributing)
 - [License](#license)
@@ -71,6 +72,13 @@ const SECURE = true         // Use HTTPS for Peerjs
 const DB_NAME = 'videochat' // DB name
 // etc...
 ```
+
+## Testing
+Testing still hasn't been fully implemented, but existing tests can be ran using the command line:
+```
+npm test
+```
+This will fire up an instance of cypress, which Videochat.js uses to test front end code. 
 
 ## Security
 The PeerJS library and peer brokering servers are highly vulnerable and not meant for high-traffic/commercial applications. That said, PeerID's can easily be spoofed and client streams can be rerouted to an external application. 
