@@ -242,7 +242,7 @@ class Video extends React.Component {
                   htmlColor='white'
                 />
               </IconButton>
-              <IconButton size='large' color='inherit' onClick={this.endCall}> 
+              <IconButton size='large' color='inherit' onClick={this.endCall}>
                 <CallEndIcon htmlColor='white' />
               </IconButton>
               <Divider orientation='vertical' color='inherit' class='divider' flexItem />
