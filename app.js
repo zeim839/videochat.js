@@ -9,7 +9,6 @@ const { MongoClient } = require('mongodb')
 const peerSrv = require('peer').PeerServer
 const base64 = require('base-64')
 const CryptoJS = require('crypto-js')
-const bcrypt = require('bcryptjs')
 const { v4: uuidv4 } = require('uuid')
 
 // Edit these parameters accordingly
@@ -60,7 +59,7 @@ app.get('/meeting/:meet', async (req, res) => {
   // Verify meeting exists
   const meetingExists = await db.db(DB_NAME).collection('Meetings')
     .findOne({ MeetingID: req.params.meet })
-  
+
   if (!meetingExists) {
     res.redirect('/')
     return
@@ -98,11 +97,13 @@ app.post('/api/create-meeting', async (req, res) => {
   // Create meeting
   const id = uuidv4().slice(0, 8)
   const JWT = createJWT(id, req.body.Username, true)
-  const salt = bcrypt.genSaltSync(10)
+  const salt = uuidv4().slice(0, 10)
+  const hash = CryptoJS.SHA256(req.body.Password + salt)
+    .toString(CryptoJS.enc.Base64)
 
   const meeting = {
     MeetingID: id,
-    Password: bcrypt.hashSync(req.body.Password, salt),
+    Password: hash,
     Admin: req.body.Username,
     Salt: salt,
     Date: new Date()
@@ -177,7 +178,10 @@ app.post('/api/sign-in', async (req, res) => {
   }
 
   // Verify password is correct
-  if (bcrypt.hashSync(req.body.Password, meetingExists.Salt) !== meetingExists.Password) {
+  const inputHashed = CryptoJS.SHA256(req.body.Password + meetingExists.Salt)
+    .toString(CryptoJS.enc.Base64)
+
+  if (inputHashed !== meetingExists.Password) {
     res.status(400).send({ Error: 'Incorrect password' })
     return
   }

@@ -48,9 +48,9 @@ describe('Rendering and session management', () => {
   // Because our client is the meeting admin...
   it('Should not show sign-in form if session is in localStorage', () => {
     cy.get('input[id="mui-1"]')
-        .should('not.exist')
+      .should('not.exist')
     cy.get('input[id="mui-2"]')
-        .should('not.exist')
+      .should('not.exist')
   })
 
   it('Should ask for mic/video permissions if session is in localStorage', () => {
@@ -126,7 +126,7 @@ describe('Sign-in form', () => {
   it('Should have a hint option', () => {
     cy.reload()
 
-    cy.get(".MuiIconButton-sizeLarge")
+    cy.get('.MuiIconButton-sizeLarge')
       .click()
 
     cy.get('h6')
@@ -304,7 +304,7 @@ describe('Permissions form', () => {
   })
 
   it('Should have both permissions enabled by default', () => {
-    cy.get('form[id="sign-into-meeting--form"]').within(() =>{
+    cy.get('form[id="sign-into-meeting--form"]').within(() => {
       cy.get('label').each(() => {
         cy.get('.MuiSwitch-root').within(() => {
           cy.get('.Mui-checked')
@@ -315,9 +315,9 @@ describe('Permissions form', () => {
   })
 
   it('Should be toggle-able', () => {
-    let x = cy.get('span[class="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root Mui-checked css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"]')
+    const x = cy.get('span[class="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root Mui-checked css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"]')
       .eq(0)
-    let y = cy.get('span[class="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root Mui-checked css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"]')
+    const y = cy.get('span[class="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root Mui-checked css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"]')
       .eq(1)
 
     cy.get('input[class="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"]')
@@ -372,7 +372,7 @@ describe('P2P & Video grid', () => {
       .then(() => {
         cy.window().then((win) => {
           win.navigator.clipboard.readText().then((text) => {
-            expect(text).to.include(" is inviting you to a meeting at ")
+            expect(text).to.include(' is inviting you to a meeting at ')
           })
         })
       })
