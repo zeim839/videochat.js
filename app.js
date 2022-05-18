@@ -11,53 +11,35 @@ const base64 = require('base-64')
 const CryptoJS = require('crypto-js')
 const { v4: uuidv4 } = require('uuid')
 
-// Edit these parameters accordingly
-const HTTP_PORT = 3001
-const PEER_PORT = 3002
-const SECURE = true
-const DB_NAME = 'CHATDB'
-const SESSION_EXPIRE_AFTER = 86400 // Lifespan of a meeting in secs (24 HOURS)
-const JWT_HEADER = base64.encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+const {
+  HTTP_PORT,
+  PEER_PORT,
+  SECURE,
+  DB_NAME,
+  createJWT,
+  connectToDb,
+  validateNewMeet,
+  validateSignIn
+} = require('./utils')
 
-// Set up dotenv so we can privately pass DB credentials
+// Read conn details from .env and connect db.
 dotenv.config()
-
-// Connect to the MongoDB database using creds from dotenv file
 const db = new MongoClient(process.env.CONN_URI)
+connectToDb(db).catch(console.error)
 
-const connectToDb = async () => {
-  await db.connect()
-
-  // Create TTL indices (auto-expire docs)
-  db.db(DB_NAME).collection('Meetings').createIndex({ Date: 1 }, { expireAfterSeconds: SESSION_EXPIRE_AFTER })
-  db.db(DB_NAME).collection('Users').createIndex({ Date: 1 }, { expireAfterSeconds: SESSION_EXPIRE_AFTER })
-}
-
-connectToDb().catch(console.error)
-
-// Serves the build folder (which includes our public HTML sites)
+// Serves the build folder
 app.use(express.static('build'))
 app.use(express.json())
-
-// Helper function for creating JWT's
-const createJWT = (meeting, username, admin) => {
-  const payload = JSON.stringify({ Meeting: meeting, Username: username, Admin: admin })
-
-  // Sign the header and payload message
-  const message = JWT_HEADER + '.' + base64.encode(payload)
-  const signature = CryptoJS.HmacSHA256(message, process.env.SHA_SECRET)
-
-  // JWT's are structure as such: header.payload.signature
-  return message + '.' + base64.encode(JSON.stringify(signature))
-}
 
 // Keeps track of how many users are in a meeting
 // so we can block when there's too many.
 const rooms = {}
 
+// Returns a meeting page, or redirects home if
+// meeting doesnt exist.
 app.get('/meeting/:meet', async (req, res) => {
-  // Verify meeting exists
-  const meetingExists = await db.db(DB_NAME).collection('Meetings')
+  const meetingExists = await db.db(DB_NAME)
+    .collection('Meetings')
     .findOne({ MeetingID: req.params.meet })
 
   if (!meetingExists) {
@@ -68,38 +50,17 @@ app.get('/meeting/:meet', async (req, res) => {
   res.sendFile(path.join(__dirname, '/build/index.html'))
 })
 
-app.post('/api/create-meeting', async (req, res) => {
-  // Validate request
-  if (!('Username' in req.body) ||
-    !('Password' in req.body)) {
-    res.status(400).send({ Error: 'Invalid request.' })
-    return
-  }
-
-  // Username is not empty
-  if (req.body.Username.match(/^ *$/) !== null) {
-    res.status(400).send({ Error: 'Username cannot be empty or whitespace.' })
-    return
-  }
-
-  // Password is not empty
-  if (req.body.Password.match(/^ *$/) !== null) {
-    res.status(400).send({ Error: 'Password cannot be empty or whitespace.' })
-    return
-  }
-
-  // Enfore minimum 4 character password length
-  if (req.body.Password.length < 4) {
-    res.status(400).send({ Error: 'Password must be at least 4 characters.' })
-    return
-  }
-
-  // Create meeting
+app.post('/api/create-meeting', validateNewMeet, async (req, res) => {
+  // Meeting id
   const id = uuidv4().slice(0, 8)
+
+  // Authentication token. This is returned to the user.
   const JWT = createJWT(id, req.body.Username, true)
+
+  // Hash must be converted to string from wordArray
   const salt = uuidv4().slice(0, 10)
-  const hash = CryptoJS.SHA256(req.body.Password + salt)
-    .toString(CryptoJS.enc.Base64)
+  const hash = CryptoJS.SHA3(req.body.Password + salt,
+    { outputLength: 256 }).toString(CryptoJS.enc.Base64)
 
   const meeting = {
     MeetingID: id,
@@ -110,23 +71,28 @@ app.post('/api/create-meeting', async (req, res) => {
   }
 
   // Add meeting to database
-  await db.db(DB_NAME).collection('Meetings').insertOne(meeting)
-    .catch((e) => {
-      res.status(500).send({ Error: 'Database internal error.' })
+  await db.db(DB_NAME).collection('Meetings')
+    .insertOne(meeting).catch((e) => {
+      res.status(500).send({
+        Error: 'Database failure: please try again.'
+      })
       throw e
     })
 
   // Register username
   // Admins expire whenever the meeting expires
-  await db.db(DB_NAME).collection('Users').insertOne({
-    MeetingID: id,
-    Username: req.body.Username,
-    Admin: true,
-    Date: meeting.Date
-  }).catch((e) => {
-    res.status(500).send({ Error: 'Database internal error.' })
-    throw e
-  })
+  await db.db(DB_NAME).collection('Users')
+    .insertOne({
+      MeetingID: id,
+      Username: req.body.Username,
+      Admin: true,
+      Date: meeting.Date
+    }).catch((e) => {
+      res.status(500).send({
+        Error: 'Database failure: please try again.'
+      })
+      throw e
+    })
 
   res.status(200).send({
     Username: req.body.Username,
@@ -136,21 +102,7 @@ app.post('/api/create-meeting', async (req, res) => {
   })
 })
 
-app.post('/api/sign-in', async (req, res) => {
-  // Validate request
-  if (!('Username' in req.body) ||
-     !('Password' in req.body) ||
-     !('Meeting' in req.body)) {
-    res.status(400).send({ Error: 'Invalid Request' })
-    return
-  }
-
-  // Username is not empty
-  if (req.body.Username.match(/^ *$/) !== null) {
-    res.status(400).send({ Error: 'Username cannot be empty or whitespace.' })
-    return
-  }
-
+app.post('/api/sign-in', validateSignIn, async (req, res) => {
   // Verify meeting exists
   const meetingExists = await db.db(DB_NAME).collection('Meetings')
     .findOne({ MeetingID: req.body.Meeting })
@@ -167,10 +119,11 @@ app.post('/api/sign-in', async (req, res) => {
   }
 
   // Query database to check if username is unique
-  const userExists = await db.db(DB_NAME).collection('Users').findOne({
-    MeetingID: req.body.Meeting,
-    Username: req.body.Username
-  })
+  const userExists = await db.db(DB_NAME).collection('Users')
+    .findOne({
+      MeetingID: req.body.Meeting,
+      Username: req.body.Username
+    })
 
   if (userExists) {
     res.status(400).send({ Error: 'Username already taken' })
@@ -178,7 +131,8 @@ app.post('/api/sign-in', async (req, res) => {
   }
 
   // Verify password is correct
-  const inputHashed = CryptoJS.SHA256(req.body.Password + meetingExists.Salt)
+  let salted = req.body.Password + meetingExists.Salt
+  const inputHashed = CryptoJS.SHA3(salted, { outputLength: 256 })
     .toString(CryptoJS.enc.Base64)
 
   if (inputHashed !== meetingExists.Password) {
@@ -187,15 +141,16 @@ app.post('/api/sign-in', async (req, res) => {
   }
 
   // Register user
-  await db.db(DB_NAME).collection('Users').insertOne({
-    MeetingID: req.body.Meeting,
-    Username: req.body.Username,
-    Admin: false,
-    Date: meetingExists.Date
-  }).catch((e) => {
-    res.status(500).send({ Error: 'Database internal error.' })
-    throw e
-  })
+  await db.db(DB_NAME).collection('Users')
+    .insertOne({
+      MeetingID: req.body.Meeting,
+      Username: req.body.Username,
+      Admin: false,
+      Date: meetingExists.Date
+    }).catch((e) => {
+      res.status(500).send({ Error: 'Database internal error.' })
+      throw e
+    })
 
   // Generate JWT
   const JWT = createJWT(req.body.Meeting, req.body.Username, false)
@@ -203,7 +158,7 @@ app.post('/api/sign-in', async (req, res) => {
   res.status(200).send({
     Username: req.body.Username,
     Meeting: req.body.Meeting,
-    Admin: false, // @TODO
+    Admin: false,
     JWT: JWT
   })
 })
