@@ -12,6 +12,7 @@ const CryptoJS = require('crypto-js')
 const { v4: uuidv4 } = require('uuid')
 const { createJWT, connectDB } = require('./utils/utils')
 const Validate = require('./utils/validation')
+const limiter = require('./utils/rateLimiter')
 
 dotenv.config()
 const HTTP_PORT = process.env.HTTP_PORT || 3001
@@ -24,6 +25,7 @@ const db = new MongoClient(process.env.CONN_URI)
 connectDB(db, DB_NAME).catch(console.error)
 
 // Serves the build folder
+app.use(limiter)
 app.use(express.static('build'))
 app.use(express.json())
 
