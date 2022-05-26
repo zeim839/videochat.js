@@ -12,12 +12,7 @@ class Message extends React.Component {
     // or 'other'
     this.type = props.type
 
-    // Sanitise HTML tags
     this.data = props.data
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace('"', '&quot;')
-      .replace("'", '&apos;')
 
     // Set the style based on who sent the message
     this.className = (this.type === 'self')
