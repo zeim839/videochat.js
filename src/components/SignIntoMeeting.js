@@ -1,5 +1,6 @@
 import React from 'react'
 import axios from 'axios'
+import validator from 'validator'
 
 import AlertWrapper from './AlertWrapper'
 import Typography from '@mui/material/Typography'
@@ -53,25 +54,25 @@ class SignIntoMeeting extends React.Component {
   // password fields after the client submits. Shows
   // an error prompt if the inputs are invalid.
   validate () {
-    // Ensure fields are non-empty
-    if (this.state.Username.match(/^\s*$/) !== null) {
+    let username = this.state.Username
+    const password = this.state.Password
+
+    // Username cannot be plain whitespace, must be
+    // between 1, 20 chars
+    username = validator.trim(username)
+    if (!validator.isLength(username, { min: 1, max: 20 })) {
       this.showAlert('Username cannot be empty')
       return false
     }
 
-    if (this.state.Password.match(/^\s*$/) !== null) {
-      this.showAlert('Password cannot be empty')
-      return false
-    }
-
-    // Enfore minimum 4 character password length
-    if (this.state.Password.length < 4) {
+    // Password must be between 4, 20 chars
+    if (!validator.isLength(password, { min: 4, max: 20 })) {
       this.showAlert('Password must be at least 4 characters')
       return false
     }
 
-    // @TODO: Enforce no special characters
-
+    // Applies whitespace trim to username
+    this.setState({ ...this.state, Username: username })
     return true
   }
 

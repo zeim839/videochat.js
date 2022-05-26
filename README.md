@@ -63,17 +63,16 @@ Builds the react front-end and serves the files from the server. This is the app
 http://localhost:3001
 ```
 <b> Optional    Configurations: </b> <br>
-You can modify the HTTP ports, HTTPS settings, database names, etc. through the [app.js](app.js) file. 
+You can optionally modify the ports, HTTPS settings, database names, etc. through your .env file. 
 
-```js
-const HTTP_PORT = 3001      // Express server port
-const PEER_PORT = 3002      // Peerjs server port
-const SECURE = true         // Use HTTPS for Peerjs
-const DB_NAME = 'videochat' // DB name
-// etc...
+```
+HTTP_PORT = 3001
+PEER_PORT = 3002
+SECURE = true
+DB_NAME = "CHATDB"
 ```
 
-Modify the client-side Peer.js client through the [peerOptions.js](src/peerOptions.js) file.
+Modify the client-side Peer.js client through the [peerOptions.js](src/peerOptions.js) file. 
 ```js
 const PEER_OPTIONS = {
   host: '/',

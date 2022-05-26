@@ -3,6 +3,7 @@ import React from 'react'
 import AlertWrapper from './components/AlertWrapper'
 import axios from 'axios'
 import base64 from 'base-64'
+import validator from 'validator'
 
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
@@ -35,24 +36,24 @@ class Home extends React.Component {
   // submissions, returns false and shows an error
   // prompt on failure.
   validate () {
-    if (this.state.Username.match(/^ *$/) !== null) {
+    let username = this.state.Username
+    const password = this.state.Password
+
+    // Password cannot be pure whitespace, must be
+    // between 1 and 20 chars.
+    username = validator.trim(username)
+    if (!validator.isLength(username, { min: 1, max: 20 })) {
       this.showAlert('Username cannot be empty')
       return false
     }
 
-    if (this.state.Password.match(/^ *$/) !== null) {
-      this.showAlert('Password cannot be empty')
-      return false
-    }
-
-    // Enfore minimum 4 character password length
-    if (this.state.Password.length < 4) {
+    // Password must be between 4 and 20 chars
+    if (!validator.isLength(password, { min: 4, max: 20 })) {
       this.showAlert('Password must be at least 4 characters')
       return false
     }
 
-    // @TODO: Enforce no special characters
-
+    this.setState({ ...this.state, Username: username })
     return true
   }
 

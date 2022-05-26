@@ -134,33 +134,6 @@ describe('Sign-in form', () => {
       .should('have.text', " Hint: You've been invited to a meeting. Enter any username and the meeting password to join the call.")
   })
 
-  it('Should display an alert if password field is empty or whitespace', () => {
-    cy.reload()
-
-    // Enter a username so client doesn't trigger a username
-    // error
-    cy.get('input[id="mui-1"]')
-      .type('SomeUser')
-
-    // Only whitespace
-    cy.get('input[id="mui-2"]')
-      .type('    ')
-
-    cy.get('.MuiButton-fullWidth')
-      .click()
-
-    cy.get('.MuiSnackbarContent-message')
-      .should('be.visible')
-      .should('have.text', 'Password cannot be empty')
-
-    // Error message dissapears when we click away
-    cy.get('form[id="sign-into-meeting--form"]')
-      .click()
-
-    cy.get('.MuiSnackbarContent-message')
-      .should('not.be.visible')
-  })
-
   it('Should display an alert if password is too short', () => {
     cy.reload()
 

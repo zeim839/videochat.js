@@ -128,30 +128,4 @@ describe('Create meeting form', () => {
     cy.get('.MuiSnackbarContent-message')
       .should('not.be.visible')
   })
-
-  it('Displays error message when password is whitespace', () => {
-    // Fill the password form with whitespace
-    cy.get('input[id="mui-2"]')
-      .type('    ')
-
-    // Fill some valid username
-    cy.get('input[id="mui-1"]')
-      .type('1234')
-
-    // Submit
-    cy.get('button')
-      .click()
-
-    // Error message pops up
-    cy.get('.MuiSnackbarContent-message')
-      .should('be.visible')
-      .should('have.text', 'Password cannot be empty')
-
-    // Error message dissapears when we click away
-    cy.get('h1')
-      .click()
-
-    cy.get('.MuiSnackbarContent-message')
-      .should('not.be.visible')
-  })
 })
