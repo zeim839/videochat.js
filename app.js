@@ -10,22 +10,18 @@ const peerSrv = require('peer').PeerServer
 const base64 = require('base-64')
 const CryptoJS = require('crypto-js')
 const { v4: uuidv4 } = require('uuid')
+const { createJWT, connectDB } = require('./utils/utils')
+const Validate = require('./utils/validation')
 
-const {
-  HTTP_PORT,
-  PEER_PORT,
-  SECURE,
-  DB_NAME,
-  createJWT,
-  connectToDb,
-  validateNewMeet,
-  validateSignIn
-} = require('./utils')
-
-// Read conn details from .env and connect db.
 dotenv.config()
+const HTTP_PORT = process.env.HTTP_PORT || 3001
+const PEER_PORT = process.env.PEER_PORT || 3002
+const SECURE = process.env.SECURE || true
+const DB_NAME = process.env.DB_NAME || 'CHATDB'
+
+// Initialize and connect to DB
 const db = new MongoClient(process.env.CONN_URI)
-connectToDb(db).catch(console.error)
+connectDB(db, DB_NAME).catch(console.error)
 
 // Serves the build folder
 app.use(express.static('build'))
@@ -50,27 +46,26 @@ app.get('/meeting/:meet', async (req, res) => {
   res.sendFile(path.join(__dirname, '/build/index.html'))
 })
 
-app.post('/api/create-meeting', validateNewMeet, async (req, res) => {
-  // Meeting id
+app.post('/api/create-meeting', Validate.newMeeting, async (req, res) => {
   const id = uuidv4().slice(0, 8)
-
-  // Authentication token. This is returned to the user.
   const JWT = createJWT(id, req.body.Username, true)
+
+  const username = req.body.Username
+  const password = req.body.Password
 
   // Hash must be converted to string from wordArray
   const salt = uuidv4().slice(0, 10)
-  const hash = CryptoJS.SHA3(req.body.Password + salt,
+  const hash = CryptoJS.SHA3(password + salt,
     { outputLength: 256 }).toString(CryptoJS.enc.Base64)
 
   const meeting = {
     MeetingID: id,
     Password: hash,
-    Admin: req.body.Username,
+    Admin: username,
     Salt: salt,
     Date: new Date()
   }
 
-  // Add meeting to database
   await db.db(DB_NAME).collection('Meetings')
     .insertOne(meeting).catch((e) => {
       res.status(500).send({
@@ -84,7 +79,7 @@ app.post('/api/create-meeting', validateNewMeet, async (req, res) => {
   await db.db(DB_NAME).collection('Users')
     .insertOne({
       MeetingID: id,
-      Username: req.body.Username,
+      Username: username,
       Admin: true,
       Date: meeting.Date
     }).catch((e) => {
@@ -95,17 +90,21 @@ app.post('/api/create-meeting', validateNewMeet, async (req, res) => {
     })
 
   res.status(200).send({
-    Username: req.body.Username,
+    Username: username,
     Meeting: id,
     Admin: true,
     JWT: JWT
   })
 })
 
-app.post('/api/sign-in', validateSignIn, async (req, res) => {
+app.post('/api/sign-in', Validate.signIn, async (req, res) => {
+  const meetingID = req.body.Meeting
+  const username = req.body.Username
+  const password = req.body.Password
+
   // Verify meeting exists
   const meetingExists = await db.db(DB_NAME).collection('Meetings')
-    .findOne({ MeetingID: req.body.Meeting })
+    .findOne({ MeetingID: meetingID })
 
   if (!meetingExists || meetingExists === null) {
     res.status(400).send({ Error: 'Meeting expired.' })
@@ -113,7 +112,7 @@ app.post('/api/sign-in', validateSignIn, async (req, res) => {
   }
 
   // Block sign-in if meeting is already at capacity
-  if (rooms[req.body.Meeting] >= 2) {
+  if (rooms[meetingID] >= 2) {
     res.status(400).send({ Error: 'Meeting is full.' })
     return
   }
@@ -121,8 +120,8 @@ app.post('/api/sign-in', validateSignIn, async (req, res) => {
   // Query database to check if username is unique
   const userExists = await db.db(DB_NAME).collection('Users')
     .findOne({
-      MeetingID: req.body.Meeting,
-      Username: req.body.Username
+      MeetingID: meetingID,
+      Username: username
     })
 
   if (userExists) {
@@ -131,7 +130,7 @@ app.post('/api/sign-in', validateSignIn, async (req, res) => {
   }
 
   // Verify password is correct
-  let salted = req.body.Password + meetingExists.Salt
+  const salted = password + meetingExists.Salt
   const inputHashed = CryptoJS.SHA3(salted, { outputLength: 256 })
     .toString(CryptoJS.enc.Base64)
 
@@ -143,21 +142,23 @@ app.post('/api/sign-in', validateSignIn, async (req, res) => {
   // Register user
   await db.db(DB_NAME).collection('Users')
     .insertOne({
-      MeetingID: req.body.Meeting,
-      Username: req.body.Username,
+      MeetingID: meetingID,
+      Username: username,
       Admin: false,
       Date: meetingExists.Date
     }).catch((e) => {
-      res.status(500).send({ Error: 'Database internal error.' })
+      res.status(500).send({
+        Error: 'Database internal error.'
+      })
       throw e
     })
 
   // Generate JWT
-  const JWT = createJWT(req.body.Meeting, req.body.Username, false)
+  const JWT = createJWT(meetingID, username, false)
 
   res.status(200).send({
-    Username: req.body.Username,
-    Meeting: req.body.Meeting,
+    Username: username,
+    Meeting: meetingID,
     Admin: false,
     JWT: JWT
   })
@@ -165,19 +166,8 @@ app.post('/api/sign-in', validateSignIn, async (req, res) => {
 
 io.on('connection', conn => {
   conn.on('ENTER-MEETING', async msg => {
-    // Validate message
-    if (!('JWT' in msg) || !('PeerID' in msg)) {
-      conn.emit('ERROR', { Error: 'Failed to authenticate. Please try again.' })
-      return
-    }
-
-    // Split the JWT by full-stop so we can get the header and payload.
+    if (!Validate.ioMeeting(msg, conn)) return
     const authToken = msg.JWT.split('.')
-
-    if (authToken.length < 3 || authToken.length > 3) {
-      conn.emit('ERROR', { Error: 'Failed to authenticate. Please try again.' })
-      return
-    }
 
     // Unpack JWT
     let decodedJWT = {}
@@ -202,7 +192,7 @@ io.on('connection', conn => {
     }
 
     // Verify JWT
-    const message = authToken[0] + '.' + authToken[1]
+    const message = [authToken[0], '.', authToken[1]].join('')
     const signature = base64.encode(
       JSON.stringify(CryptoJS.HmacSHA256(message, process.env.SHA_SECRET))
     )
@@ -256,8 +246,6 @@ io.on('connection', conn => {
   })
 })
 
-// Starts the peer server
+// Start servers
 peerSrv({ port: PEER_PORT, secure: SECURE, path: '/' })
-
-// Starts the Express HTTP server
 http.listen(HTTP_PORT, () => console.log('Server Running'))
