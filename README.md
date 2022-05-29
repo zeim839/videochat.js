@@ -1,7 +1,7 @@
 # Videochat.js
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme) <a href="https://standardjs.com"><img src="https://img.shields.io/badge/code_style-standard-brightgreen.svg" alt="Standard - JavaScript Style Guide"></a> <a href="https://www.npmjs.com/package/standard"> <img src="https://img.shields.io/npm/v/standard.svg" alt="npm version"></a>
 
-P2P room-based video conferencing built with react.js, peer.js and express server. 
+P2P room-based video conferencing built with react.js, peer.js and express server. Try the [demo](https://videochat.ml/).
 
 ## Table of Contents
 - [Install](#install)
