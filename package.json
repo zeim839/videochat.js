@@ -1,6 +1,6 @@
 {
   "name": "videochat.js",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "proxy": "http://localhost:3001/",
   "private": true,
   "dependencies": {
@@ -17,17 +17,17 @@
     "concurrently": "^7.0.0",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.0",
-    "express": "^4.17.3",
+    "express": "^4.18.1",
     "express-rate-limit": "^6.4.0",
     "http-proxy-middleware": "^2.0.3",
     "mongodb": "^4.4.1",
-    "nodemon": "^2.0.15",
+    "nodemon": "^2.0.19",
     "peer": "^0.6.1",
     "peerjs": "^1.3.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-router-dom": "^6.2.2",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^2.1.3",
     "socket.io": "^4.4.1",
     "socket.io-client": "^4.4.1",
     "standard": "^16.0.4",
@@ -81,7 +81,7 @@
     ]
   },
   "devDependencies": {
-    "cypress": "^9.6.0",
+    "cypress": "^10.4.0",
     "cypress-localstorage-commands": "^1.7.0"
   }
 }
