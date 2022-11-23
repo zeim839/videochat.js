@@ -33,6 +33,11 @@ app.use(express.json())
 // so we can block when there's too many.
 const rooms = {}
 
+// Return current version
+app.get('/version', (req, res) => {
+  return res.status(200).send({ version: '0.1.6' })
+})
+
 // Returns a meeting page, or redirects home if
 // meeting doesnt exist.
 app.get('/meeting/:meet', async (req, res) => {
